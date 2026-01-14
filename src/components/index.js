@@ -1,13 +1,12 @@
 // Barrel export for all components
-// Usage: import { Header, ProductList, ProductCard } from './components'
+// Usage: import { Header, ProductList } from './components'
 
 // Main components
 export { default as Header } from './Header'
 export { default as ProductList } from './ProductList'
-export { default as ProductCard } from './ProductCard'
 
-// Cart components
+// Cart components (CartButton, CartDropdown)
 export * from './cart'
 
-// UI components
+// UI components (EmptyState, ProductSkeletonGrid)
 export * from './ui'

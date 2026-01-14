@@ -3,5 +3,6 @@
 
 export { default as CartButton } from './CartButton'
 export { default as CartDropdown } from './CartDropdown'
-export { default as CartItem } from './CartItem'
-export { default as CartSummary } from './CartSummary'
+
+// Note: CartItem and CartSummary are internal components used by CartDropdown
+// They are not exported here as they're not meant to be used directly

@@ -51,7 +51,6 @@ const Header = () => {
   // EVENT HANDLERS
   // ============================================
 
-  const openDropdown = () => setShowDropdown(true)
   const closeDropdown = () => setShowDropdown(false)
   const toggleDropdown = () => setShowDropdown(prev => !prev)
 
