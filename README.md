@@ -23,15 +23,16 @@ A clean, minimal e-commerce interface with:
 
 This project teaches you:
 
-| Concept             | Where It's Used                     |
-| ------------------- | ----------------------------------- |
-| **Context API**     | Global state for cart and products  |
-| **Custom Hooks**    | `useCart()` and `useProducts()`     |
-| **useState**        | Local component state (dropdown)    |
-| **useEffect**       | Data fetching, localStorage sync    |
-| **Barrel Exports**  | Clean imports with `index.js` files |
-| **Vite Proxy**      | API routing during development      |
-| **Tailwind CSS v4** | Modern utility-first styling        |
+| Concept                   | Where It's Used                     |
+| ------------------------- | ----------------------------------- |
+| **Context API**           | Global state for cart and products  |
+| **Custom Hooks**          | `useCart()` and `useProducts()`     |
+| **useState**              | Local component state (dropdown)    |
+| **useEffect**             | Data fetching, localStorage sync    |
+| **Barrel Exports**        | Clean imports with `index.js` files |
+| **Component Composition** | Modular, reusable UI components     |
+| **Vite Proxy**            | API routing during development      |
+| **Tailwind CSS v4**       | Modern utility-first styling        |
 
 ---
 
@@ -53,9 +54,22 @@ cart-craft/
     ├── 📄 index.css           # Tailwind imports
     │
     ├── 📂 components/
-    │   ├── 📄 Header.jsx      # Navigation with cart dropdown
-    │   ├── 📄 ProductList.jsx # Product grid with states
-    │   └── 📄 ProductCard.jsx # Individual product display
+    │   ├── 📄 index.js        # Barrel export for all components
+    │   ├── 📄 Header.jsx      # Navigation bar (uses cart components)
+    │   ├── 📄 ProductList.jsx # Product grid (uses UI components)
+    │   ├── 📄 ProductCard.jsx # Individual product display
+    │   │
+    │   ├── 📂 cart/           # Cart-specific components
+    │   │   ├── 📄 index.js    # Barrel export
+    │   │   ├── 📄 CartButton.jsx    # Cart icon with badge
+    │   │   ├── 📄 CartDropdown.jsx  # Dropdown container
+    │   │   ├── 📄 CartItem.jsx      # Single cart item row
+    │   │   └── 📄 CartSummary.jsx   # Total + action buttons
+    │   │
+    │   └── 📂 ui/             # Reusable UI components
+    │       ├── 📄 index.js    # Barrel export
+    │       ├── 📄 EmptyState.jsx    # Generic empty/error state
+    │       └── 📄 ProductSkeleton.jsx # Loading skeleton
     │
     ├── 📂 contexts/
     │   ├── 📂 cart/           # Cart state management
@@ -367,18 +381,205 @@ The `src/data/db.json` file contains product data:
 
 ## 🎨 Components Breakdown
 
-### Header.jsx
+This project uses a **modular component architecture** where larger components are broken down into smaller, reusable pieces. This makes the code easier to read, test, and maintain.
 
-The navigation bar with cart functionality:
+### Component Organization
+
+```
+components/
+├── Header.jsx          # Orchestrates cart UI (uses cart/ components)
+├── ProductList.jsx     # Orchestrates product grid (uses ui/ components)
+├── ProductCard.jsx     # Single product display
+│
+├── cart/               # Cart-specific components
+│   ├── CartButton.jsx      # Icon + badge
+│   ├── CartDropdown.jsx    # Dropdown container
+│   ├── CartItem.jsx        # Single item row
+│   └── CartSummary.jsx     # Total + buttons
+│
+└── ui/                 # Reusable UI components
+    ├── EmptyState.jsx      # Generic empty/error display
+    └── ProductSkeleton.jsx # Loading placeholder
+```
+
+---
+
+### 📂 cart/ Components
+
+#### CartButton.jsx
+
+The cart icon button with item count badge:
 
 ```jsx
-// Key features:
-// - Cart icon with item count badge
-// - Dropdown with product list
-// - Click outside to close (backdrop)
-// - Close button
-// - Auto-close when cart empties
-// - Clear cart functionality
+/**
+ * @param {number} itemCount - Total items in cart
+ * @param {function} onClick - Toggle dropdown handler
+ */
+const CartButton = ({ itemCount, onClick }) => {
+  return (
+    <button onClick={onClick}>
+      <HiOutlineShoppingCart />
+      {itemCount > 0 && <span>{itemCount > 9 ? '9+' : itemCount}</span>}
+    </button>
+  )
+}
+```
+
+#### CartItem.jsx
+
+A single item row in the cart dropdown:
+
+```jsx
+/**
+ * @param {object} item - Cart item (id, name, image, price, qty)
+ * @param {function} onRemove - Remove item handler
+ */
+const CartItem = ({ item, onRemove }) => {
+  // Displays: image, name, quantity × price, remove button
+}
+```
+
+#### CartSummary.jsx
+
+Total price and action buttons:
+
+```jsx
+/**
+ * @param {string} total - Formatted total price
+ * @param {function} onCheckout - Checkout handler
+ * @param {function} onClear - Clear cart handler
+ */
+const CartSummary = ({ total, onCheckout, onClear }) => {
+  // Displays: total, checkout button, clear cart button
+}
+```
+
+#### CartDropdown.jsx
+
+The dropdown container that orchestrates cart display:
+
+```jsx
+/**
+ * Composes: CartItem, CartSummary
+ * Handles: backdrop click-outside-to-close, empty state
+ */
+const CartDropdown = ({
+  cart,
+  itemCount,
+  total,
+  onClose,
+  onRemoveItem,
+  onClearCart,
+  onCheckout
+}) => {
+  // Renders header, item list, and summary
+}
+```
+
+---
+
+### 📂 ui/ Components
+
+#### EmptyState.jsx
+
+A reusable component for empty or error states:
+
+```jsx
+/**
+ * @param {string} title - Main message
+ * @param {string} subtitle - Secondary message (optional)
+ * @param {string} actionLabel - Button text (optional)
+ * @param {function} onAction - Button handler (optional)
+ */
+const EmptyState = ({ title, subtitle, actionLabel, onAction }) => {
+  // Flexible empty state with optional action button
+}
+```
+
+**Usage examples:**
+
+```jsx
+// Simple empty state
+<EmptyState title='No products found' subtitle='Check back later' />
+
+// Error state with retry
+<EmptyState
+  title='Something went wrong'
+  subtitle={error}
+  actionLabel='Try again'
+  onAction={() => window.location.reload()}
+/>
+```
+
+#### ProductSkeleton.jsx
+
+Loading placeholder for product cards:
+
+```jsx
+// Single skeleton card
+const ProductSkeleton = () => {
+  // Animated pulse placeholder matching ProductCard layout
+}
+
+// Grid of skeleton cards
+export const ProductSkeletonGrid = ({ count = 6 }) => {
+  return (
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+      {Array.from({ length: count }, (_, i) => (
+        <ProductSkeleton key={i} />
+      ))}
+    </div>
+  )
+}
+```
+
+---
+
+### Header.jsx (Simplified)
+
+Now uses the modular cart components:
+
+```jsx
+import { CartButton, CartDropdown } from './cart'
+
+const Header = () => {
+  const [showDropdown, setShowDropdown] = useState(false)
+  const { cart, removeFromCart, clearCart } = useCart()
+
+  // Derived values
+  const itemCount = calculateItemCount(cart)
+  const total = calculateTotalPrice(cart)
+
+  // Event handlers
+  const handleRemoveItem = itemId => {
+    removeFromCart(itemId)
+    if (cart.length === 1) closeDropdown()
+  }
+
+  return (
+    <header>
+      <span>CartCraft</span>
+
+      <div className='relative'>
+        {/* Modular cart button */}
+        <CartButton itemCount={itemCount} onClick={toggleDropdown} />
+
+        {/* Modular cart dropdown */}
+        {showDropdown && (
+          <CartDropdown
+            cart={cart}
+            itemCount={itemCount}
+            total={total}
+            onClose={closeDropdown}
+            onRemoveItem={handleRemoveItem}
+            onClearCart={handleClearCart}
+            onCheckout={handleCheckout}
+          />
+        )}
+      </div>
+    </header>
+  )
+}
 ```
 
 **UX Features:**
@@ -391,23 +592,52 @@ The navigation bar with cart functionality:
 
 ---
 
-### ProductList.jsx
+### ProductList.jsx (Simplified)
 
-Handles all loading states:
+Now uses the modular UI components:
 
 ```jsx
-// States:
-// 1. Loading → Shows skeleton animation
-// 2. Error → Shows error message with retry button
-// 3. Empty → Shows "No products found"
-// 4. Success → Shows product grid
+import { EmptyState, ProductSkeletonGrid } from './ui'
+
+const ProductList = () => {
+  const { products, loading, error } = useProducts()
+
+  // Loading state
+  if (loading) return <ProductSkeletonGrid count={6} />
+
+  // Error state
+  if (error) {
+    return (
+      <EmptyState
+        title='Something went wrong'
+        subtitle={error}
+        actionLabel='Try again'
+        onAction={() => window.location.reload()}
+      />
+    )
+  }
+
+  // Empty state
+  if (products.length === 0) {
+    return <EmptyState title='No products found' subtitle='Check back later' />
+  }
+
+  // Success state
+  return (
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+      {products.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  )
+}
 ```
 
 ---
 
 ### ProductCard.jsx
 
-Individual product display:
+Individual product display (unchanged - already focused):
 
 ```jsx
 // Features:
@@ -422,17 +652,39 @@ Individual product display:
 
 ---
 
+### 🔄 Benefits of Modular Components
+
+| Benefit             | Description                                   |
+| ------------------- | --------------------------------------------- |
+| **Readability**     | Each component has a single responsibility    |
+| **Testability**     | Test components in isolation                  |
+| **Reusability**     | Use `EmptyState` anywhere in the app          |
+| **Maintainability** | Change one component without affecting others |
+| **Debugging**       | Easier to find and fix issues                 |
+
+**Example - Before vs After:**
+
+```jsx
+// BEFORE: Header.jsx was 160+ lines with everything inline
+
+// AFTER: Header.jsx is ~100 lines, using:
+import { CartButton, CartDropdown } from './cart'
+// Each cart component is focused and testable
+```
+
+---
+
 ## 🔧 Customization Guide
 
 ### Change the App Name
 
-Edit the logo in `Header.jsx`:
+Edit the logo in [Header.jsx](src/components/Header.jsx):
 
 ```jsx
 <span className='font-bold text-2xl text-neutral-900'>YourAppName</span>
 ```
 
-And the title in `index.html`:
+And the title in [index.html](index.html):
 
 ```html
 <title>YourAppName</title>
@@ -465,7 +717,7 @@ className = 'bg-blue-600 text-white'
 
 ### Add More Products
 
-Edit `src/data/db.json`:
+Edit [src/data/db.json](src/data/db.json):
 
 ```json
 {
@@ -499,6 +751,7 @@ Here are some ideas to practice and extend:
 - [ ] Show "Out of stock" for quantity: 0
 - [ ] Add product categories filter
 - [ ] Implement quantity +/- buttons in cart
+- [ ] Create a new UI component (e.g., `Badge.jsx`)
 
 ### Intermediate Level
 
@@ -506,6 +759,7 @@ Here are some ideas to practice and extend:
 - [ ] Implement product detail page (React Router)
 - [ ] Add favorites/wishlist feature
 - [ ] Implement checkout flow
+- [ ] Add more cart components (e.g., `CartQuantitySelector.jsx`)
 
 ### Advanced Level
 
@@ -513,6 +767,7 @@ Here are some ideas to practice and extend:
 - [ ] Connect to a real backend (Express/Firebase)
 - [ ] Add payment integration (Stripe)
 - [ ] Implement order history
+- [ ] Add unit tests for components
 
 ---
 
@@ -558,12 +813,17 @@ These won't appear in production builds.
 
 **2. "useCart must be used within CartProvider"**
 
-- Ensure your component is inside the Provider tree in `main.jsx`
+- Ensure your component is inside the Provider tree in [main.jsx](src/main.jsx)
 
 **3. Cart not persisting**
 
 - Check browser localStorage (DevTools → Application → Local Storage)
 - Make sure localStorage isn't disabled
+
+**4. Component not found import error**
+
+- Check that the component is exported in its `index.js` barrel file
+- Verify the import path is correct
 
 ---
 
