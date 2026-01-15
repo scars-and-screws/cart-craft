@@ -1,5 +1,4 @@
-import Header from './components/Header'
-import ProductList from './components/ProductList'
+import { Header, ProductList } from './components'
 
 const App = () => {
   return (
